@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<title>SignalR Simple</title>
+</head>
+<body>
+	<div>
+		<div id="odd">
+			<b>ODD</b>
+			<div class="message"></div>
+			<input type="button" id="joinOdd" value="Join ODD" />
+			<input type="button" id="leaveOdd" value="Leave ODD" />
+		</div>
+		<div id="even">
+			<b>EVEN</b>
+			<div class="message"></div>
+			<input type="button" id="joinEven" value="Join EVEN" />
+			<input type="button" id="leaveEven" value="Leave EVEN" />
+		</div>
+		<div>
+		</div>
+	</div>
+	<script src="Scripts/jquery-2.1.4.js"></script>
+	<script src="Scripts/jquery.signalR-2.2.0.js"></script>
+	<script src="signalr/hubs"></script>
+	<!--Add script to update the page and send messages.-->
+	<script type="text/javascript">
+		$(function () {
+
+			window.connection = $.hubConnection("/signalr");
+
+			window.adminHub = connection.createHubProxy("adminHub");
+
+			window.adminHub.on("oddNotification", function(ts, host) {
+				$("#odd .message").text(ts);
+				console.debug("Host", ts, host);
+			});
+
+			window.adminHub.on("evenNotification", function (ts, host) {
+				$("#even .message").text(ts);
+				console.debug("Host", ts, host);
+			});
+
+			window.connection.start({
+
+	             //transport: $.signalR.transports.longPolling.name
+
+			}).done(function () {
+
+	            console.debug("Connection success.");
+
+                $('#joinOdd').click(function () {
+                    // Call the Send method on the hub.
+                	window.adminHub.invoke("join", "odd");
+                });
+                $('#leaveOdd').click(function () {
+                	// Call the Send method on the hub.
+                	window.adminHub.invoke("leave", "odd");
+                });
+                $('#joinEven').click(function () {
+                	// Call the Send method on the hub.
+                	window.adminHub.invoke("join", "even");
+                });
+                $('#leaveEven').click(function () {
+                	// Call the Send method on the hub.
+                	window.adminHub.invoke("leave", "even");
+                });
+            });
+        });
+	</script>
+</body>
+</html>
