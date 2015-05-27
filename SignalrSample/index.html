@@ -31,14 +31,20 @@
 
 			window.adminHub = connection.createHubProxy("adminHub");
 
+
+			window.adminHub.on("updateEvent", function(update) {
+				console.debug(update);
+			});
+
+
 			window.adminHub.on("oddNotification", function(ts, host) {
 				$("#odd .message").text(ts);
-				console.debug("Host", ts, host);
+				//console.debug("odd", ts, host);
 			});
 
 			window.adminHub.on("evenNotification", function (ts, host) {
 				$("#even .message").text(ts);
-				console.debug("Host", ts, host);
+				//console.debug("even", ts, host);
 			});
 
 			window.connection.start({
@@ -47,7 +53,7 @@
 
 			}).done(function () {
 
-	            console.debug("Connection success.");
+	            console.debug("Connection success. Waiting for messages.");
 
                 $('#joinOdd').click(function () {
                     // Call the Send method on the hub.

@@ -82,7 +82,7 @@
     </Reference>
     <Reference Include="StackExchange.Redis.StrongName, Version=1.0.316.0, Culture=neutral, PublicKeyToken=c219ff1ca8c2ce46, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\StackExchange.Redis.StrongName.1.0.322\lib\net45\StackExchange.Redis.StrongName.dll</HintPath>
+      <HintPath>..\packages\StackExchange.Redis.StrongName.1.0.450\lib\net45\StackExchange.Redis.StrongName.dll</HintPath>
     </Reference>
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Web.DynamicData" />
@@ -122,11 +122,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdminHub.cs" />
+    <Compile Include="EventsRepository.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Push.Common\Push.Common.csproj">
+      <Project>{5c676db5-1ce1-458c-b303-ee19b5980182}</Project>
+      <Name>Push.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Push.Core\Push.Core.csproj">
+      <Project>{4f079e67-8707-4b10-bf75-2856c1e2f211}</Project>
+      <Name>Push.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
