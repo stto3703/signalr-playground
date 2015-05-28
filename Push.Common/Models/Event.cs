@@ -5,6 +5,11 @@ namespace Push.Common.Models
 	[Serializable]
 	public class Event
 	{
+		public Event()
+		{
+			Scoreboard = new Scoreboard();
+		}
+
 		public int Id { get; set; }
 
 		public string Name { get; set; }

@@ -49,6 +49,7 @@
     <Compile Include="Models\Scoreboard.cs" />
     <Compile Include="Models\Sport.cs" />
     <Compile Include="Notifications\EventNotification.cs" />
+    <Compile Include="Notifications\Packet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

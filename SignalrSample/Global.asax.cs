@@ -1,17 +1,21 @@
 ﻿using System.Linq;
-using System.Runtime.Remoting.Channels;
+using System.Threading.Tasks;
 using Microsoft.AspNet.SignalR;
-using System;
-using System.Web.Hosting;
 using Push.Common;
 using Push.Common.Notifications;
-using Timer = System.Timers.Timer;
+using Push.Core;
 using Push.Core.SimpleHelpers;
+using System;
+using System.Web.Hosting;
+using Timer = System.Timers.Timer;
 
 namespace SignalrSample
 {
 	public class Global : System.Web.HttpApplication
 	{
+		private readonly Random rand = new Random();
+		private readonly OutboundBufferedQueue buffer = new OutboundBufferedQueue();
+
 		protected void Application_Start(object sender, EventArgs e)
 		{
 			HostingEnvironment.QueueBackgroundWorkItem(cancelToken => StartRandomEventUpdate());
@@ -19,44 +23,59 @@ namespace SignalrSample
 		}
 
 
-		private static void StartRandomEventUpdate()
+		private void StartRandomEventUpdate()
 		{
 			var timer = new Timer
 			{
-				Interval = 1000,
+				Interval = 10,
 				AutoReset = true
 			};
 
-			var rand = new Random();
-
-			timer.Elapsed += (sender, args) =>
+			buffer.ThresholdReached += (sender, args) =>
 			{
-				var oldEvent = EventsRepository.Instance.GetEvents().PickRandom();
-				var newEvent = oldEvent.DeepClone();
-				var deltaMinutes = rand.Next(-1, 1);
-				newEvent.OpenDate = newEvent.OpenDate.AddMinutes(deltaMinutes);
-
-				var delta = ObjectDiffPatch.GenerateDiff(oldEvent, newEvent);
 				var clients = GlobalHost.ConnectionManager.GetHubContext<AdminHub>().Clients.All;
-				var notification = new EventNotification
-				{
-					Id = newEvent.Id,
-					Delta = delta.NewValues
-				};
-
-				clients.updateEvent(notification);
+				clients.updateEvent(args.Packet);
 			};
+
+			timer.Elapsed += (sender, args) => Parallel.Invoke(
+				GenerateUpdate,
+				GenerateUpdate,
+				GenerateUpdate,
+				GenerateUpdate,
+				GenerateUpdate,
+				GenerateUpdate,
+				GenerateUpdate
+				);
 
 			timer.Start();
 		}
 
+		private void GenerateUpdate()
+		{
+			var oldEvent = EventsRepository.Instance.GetEvents().First(); //.PickRandom();
+			//oldEvent.Scoreboard.Messages.Add(new Message { Id = rand.Next(), Text = "Message content " + rand.Next() });
+			var newEvent = oldEvent.DeepClone();
+			var deltaMinutes = rand.Next(-10, 10);
+			newEvent.OpenDate = newEvent.OpenDate.AddMinutes(deltaMinutes);
+			//newEvent.Scoreboard.Messages.Add(new Message { Id = rand.Next(), Text = "Message content " + rand.Next() });
 
+			var delta = ObjectDiffPatch.GenerateDiff(oldEvent, newEvent);
+
+			if (!delta.AreEqual)
+			{
+				buffer.EnqueueNotification(new EventNotification
+				{
+					Id = newEvent.Id,
+					Delta = delta.NewValues
+				});
+			}
+		}
 
 		private static void StartOddEventNotificationTimer()
 		{
 			var timer = new Timer
 			{
-				Interval = 2000, 
+				Interval = 2000,
 				AutoReset = true
 			};
 
