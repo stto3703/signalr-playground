@@ -123,6 +123,7 @@
   <ItemGroup>
     <Compile Include="AdminHub.cs" />
     <Compile Include="EventsRepository.cs" />
+    <Compile Include="Generator.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

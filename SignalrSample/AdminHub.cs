@@ -1,18 +1,32 @@
-﻿using Microsoft.AspNet.SignalR;
+﻿using System;
+using Microsoft.AspNet.SignalR;
 using System.Threading.Tasks;
+using Push.Core.Extensions;
 
 namespace SignalrSample
 {
 	public class AdminHub : Hub
 	{
-		public Task Join(string group)
+		public override Task OnConnected()
 		{
-			return Groups.Add(Context.ConnectionId, group);
+			var ip = Context.Request.RemoteIpAddress();
+			return base.OnConnected();
 		}
 
-		public Task Leave(string group)
+
+		public void Start()
 		{
-			return Groups.Remove(Context.ConnectionId, group);
+			Generator.Instance.Start();
+		}
+
+		public void Stop()
+		{
+			Generator.Instance.Stop();
+			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			GC.WaitForFullGCComplete();
+			GC.Collect();
+
 		}
 	}
 }

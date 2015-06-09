@@ -1,78 +1,72 @@
 ﻿<!DOCTYPE html>
 <html>
-<head>
-	<title>SignalR Simple</title>
-</head>
-<body>
-	<div>
-		<div id="odd">
-			<b>ODD</b>
-			<div class="message"></div>
-			<input type="button" id="joinOdd" value="Join ODD" />
-			<input type="button" id="leaveOdd" value="Leave ODD" />
-		</div>
-		<div id="even">
-			<b>EVEN</b>
-			<div class="message"></div>
-			<input type="button" id="joinEven" value="Join EVEN" />
-			<input type="button" id="leaveEven" value="Leave EVEN" />
-		</div>
+	<head>
+		<title>SignalR Simple</title>
+	</head>
+	<body>
 		<div>
+			<b>AdminHub</b>
+			<input type="button" id="start" value="Start Broadcast" />
+			<input type="button" id="stop" value="Stop Broadcast" disabled="disabled" />
+			<div class="status">
+				<span id="stats"></span> packets/s <br/>
+				<span id="seq"></span> last sequence
+			</div>
 		</div>
-	</div>
-	<script src="Scripts/jquery-2.1.4.js"></script>
-	<script src="Scripts/jquery.signalR-2.2.0.js"></script>
-	<script src="signalr/hubs"></script>
-	<!--Add script to update the page and send messages.-->
-	<script type="text/javascript">
-		$(function () {
+		<script src="Scripts/jquery-2.1.4.js"></script>
+		<script src="Scripts/jquery.signalR-2.2.0.js"></script>
+		<script src="signalr/hubs"></script>
+		<!--Add script to update the page and send messages.-->
+		<script type="text/javascript">
+			$(function() {
 
-			window.connection = $.hubConnection("/signalr");
+				var messageCounter = 0;
+				var lastSequence;
 
-			window.adminHub = connection.createHubProxy("adminHub");
+				var stats = $("#stats");
+				var seq = $('#seq');
 
+				window.connection = $.hubConnection("/signalr");
 
-			window.adminHub.on("updateEvent", function(update) {
-				console.debug(update);
+				window.adminHub = connection.createHubProxy("adminHub");
+
+				setInterval(function () {
+					stats.text(Math.round(messageCounter));
+					messageCounter = 0;
+				}, 300);
+
+				window.adminHub.on("updateEvent", function (packet) {
+
+					if (lastSequence && lastSequence !== packet.Id - 1) {
+						console.error("Sequence out of sync");
+					}
+					lastSequence = packet.Id;
+					messageCounter++;
+					seq.text(packet.Id);
+				});
+
+				window.connection.start({
+					//transport: $.signalR.transports.longPolling.name
+
+				}).done(function() {
+
+					console.debug("Connection success. Waiting for messages.");
+
+					$('#start').click(function() {
+						window.adminHub.invoke("start").then(function () {
+							$('#start').attr("disabled", "disabled");
+							$('#stop').removeAttr("disabled");
+						});
+					});
+					$('#stop').click(function() {
+						window.adminHub.invoke("stop").then(function () {
+							$('#stop').attr("disabled", "disabled");
+							$('#start').removeAttr("disabled");
+						});
+					});
+
+				});
 			});
-
-
-			window.adminHub.on("oddNotification", function(ts, host) {
-				$("#odd .message").text(ts);
-				//console.debug("odd", ts, host);
-			});
-
-			window.adminHub.on("evenNotification", function (ts, host) {
-				$("#even .message").text(ts);
-				//console.debug("even", ts, host);
-			});
-
-			window.connection.start({
-
-	             //transport: $.signalR.transports.longPolling.name
-
-			}).done(function () {
-
-	            console.debug("Connection success. Waiting for messages.");
-
-                $('#joinOdd').click(function () {
-                    // Call the Send method on the hub.
-                	window.adminHub.invoke("join", "odd");
-                });
-                $('#leaveOdd').click(function () {
-                	// Call the Send method on the hub.
-                	window.adminHub.invoke("leave", "odd");
-                });
-                $('#joinEven').click(function () {
-                	// Call the Send method on the hub.
-                	window.adminHub.invoke("join", "even");
-                });
-                $('#leaveEven').click(function () {
-                	// Call the Send method on the hub.
-                	window.adminHub.invoke("leave", "even");
-                });
-            });
-        });
-	</script>
-</body>
+		</script>
+	</body>
 </html>

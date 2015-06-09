@@ -1,33 +1,30 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNet.SignalR;
+﻿using Microsoft.AspNet.SignalR;
 using Push.Common;
 using Push.Common.Notifications;
 using Push.Core;
 using Push.Core.SimpleHelpers;
 using System;
-using System.Web.Hosting;
-using Timer = System.Timers.Timer;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Timers;
 
 namespace SignalrSample
 {
-	public class Global : System.Web.HttpApplication
+	public class Generator
 	{
-		private readonly Random rand = new Random();
-		private readonly OutboundBufferedQueue buffer = new OutboundBufferedQueue();
+		public readonly static Generator Instance = new Generator();
 
-		protected void Application_Start(object sender, EventArgs e)
+		private readonly OutboundBufferedQueue buffer;
+		private readonly Random rand;
+		private readonly Timer timer;
+
+		private Generator()
 		{
-			//HostingEnvironment.QueueBackgroundWorkItem(cancelToken => StartRandomEventUpdate());
-			//HostingEnvironment.QueueBackgroundWorkItem(cancelToken => StartOddEventNotificationTimer());
-		}
-
-
-		private void StartRandomEventUpdate()
-		{
-			var timer = new Timer
+			buffer = new OutboundBufferedQueue();
+			rand = new Random();
+			timer = new Timer
 			{
-				Interval = 100,
+				Interval = 1,
 				AutoReset = true
 			};
 
@@ -45,9 +42,7 @@ namespace SignalrSample
 				GenerateUpdate,
 				GenerateUpdate,
 				GenerateUpdate
-				);
-
-			timer.Start();
+			);
 		}
 
 		private void GenerateUpdate()
@@ -68,26 +63,18 @@ namespace SignalrSample
 					Id = newEvent.Id,
 					Delta = delta.NewValues
 				});
+				//buffer.EnqueueNotification(new EventNotification());
 			}
 		}
 
-		private static void StartOddEventNotificationTimer()
+		public void Start()
 		{
-			var timer = new Timer
-			{
-				Interval = 2000,
-				AutoReset = true
-			};
-
-			timer.Elapsed += async (sender, args) =>
-			{
-				var msg = DateTime.UtcNow;
-				var clients = GlobalHost.ConnectionManager.GetHubContext<AdminHub>().Clients;
-				await clients.Group("odd").oddNotification(msg, HostingEnvironment.SiteName);
-				await clients.Group("even").evenNotification(msg, HostingEnvironment.SiteName);
-			};
-
 			timer.Start();
+		}
+
+		public void Stop()
+		{
+			timer.Stop();
 		}
 	}
 }
