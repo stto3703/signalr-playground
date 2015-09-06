@@ -26,7 +26,7 @@ namespace Tests
 					{
 						new Message
 						{
-							Id = 123,
+							Id = 1,
 							Text = "Goal for Real Madrid"
 						}
 					},
@@ -66,7 +66,7 @@ namespace Tests
 
 			//e2.OpenDate = DateTime.UtcNow.AddMinutes(10);
 
-			//e2.Scoreboard.Messages[0].Text = "New update message";
+			e2.Scoreboard.Messages[0].Text = "New update message";
 			e2.Scoreboard.Messages.Add(new Message
 			{
 				Id = 124,

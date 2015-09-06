@@ -59,7 +59,9 @@ namespace SignalrSample
 				var newEvent = oldEvent.DeepClone();
 				var deltaMinutes = rand.Next(-10, 10);
 				//newEvent.OpenDate = newEvent.OpenDate.AddMinutes(deltaMinutes);
-				newEvent.Scoreboard.Messages.Add(new Message { Id = rand.Next(), Text = "Message content " + rand.Next() });
+				//newEvent.Scoreboard.Messages.Add(new Message { Id = rand.Next(), Text = "Message content " + rand.Next() });
+				newEvent.Scoreboard.Messages[0].Text = "Message content " + rand.Next();
+				newEvent.Scoreboard.Stats.DoubleCounters[0].Team1.Counters[0].Value = 11 + rand.Next();
 
 				var existingJson = JObject.FromObject(oldEvent).Root;
 				var updatedJson = JObject.FromObject(newEvent).Root;
