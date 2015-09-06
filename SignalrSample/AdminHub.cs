@@ -1,7 +1,9 @@
-﻿using System;
-using Microsoft.AspNet.SignalR;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNet.SignalR;
+using Push.Common.Models;
 using Push.Core.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SignalrSample
 {
@@ -14,14 +16,16 @@ namespace SignalrSample
 		}
 
 
-		public void Start()
+		public Task<IEnumerable<Event>> Start()
 		{
-			Generator.Instance.Start();
+			var events = EventsRepository.Instance.GetEvents();
+			UpdateGenerator.Instance.Start();
+			return Task.FromResult(events);
 		}
 
 		public void Stop()
 		{
-			Generator.Instance.Stop();
+			UpdateGenerator.Instance.Stop();
 			GC.Collect();
 			GC.WaitForPendingFinalizers();
 			GC.WaitForFullGCComplete();

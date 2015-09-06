@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-//using Timer = System.Timers.Timer;
 
 namespace Push.Core
 {
@@ -22,17 +21,7 @@ namespace Push.Core
 		{
 			sequence = 0;
 			stats = 0;
-
 			timer = new Timer(FLushNext, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(FlushInterval));
-
-			//timer = new Timer
-			//{
-			//	AutoReset = true,
-			//	Interval = FlushInterval
-			//};
-
-			//timer.Elapsed += (sender, e) => FLushNext();
-			//timer.Start();
 		}
 
 		public void EnqueueNotification(EventNotification notification)

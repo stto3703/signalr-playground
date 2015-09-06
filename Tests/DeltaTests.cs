@@ -1,9 +1,10 @@
-﻿using System;
-using Newtonsoft.Json;
+﻿using JsonDiffPatch;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Push.Common;
 using Push.Common.Models;
-using Push.Core.SimpleHelpers;
+using System;
+using System.Collections.Generic;
 
 namespace Tests
 {
@@ -11,27 +12,51 @@ namespace Tests
 	public class DeltaTests
 	{
 		[Test]
-		public void GenerateSimpleDelta()
+		public void GeneratePatches()
 		{
 			var e1 = new Event
 			{
 				Id = 312332,
 				Name = "Real Madrid - FC Barcelona",
 				OpenDate = DateTime.UtcNow,
-				Sport = new Sport {Id = 4, Name = "Soccer"},
+				Sport = new Sport { Id = 4, Name = "Soccer" },
 				Scoreboard = new Scoreboard
 				{
-					Messages = new[]
+					Messages = new List<Message>
 					{
 						new Message
 						{
 							Id = 123,
 							Text = "Goal for Real Madrid"
-						},
-						new Message
+						}
+					},
+					Stats = new GameStatistics
+					{
+						DoubleCounters = new List<LiveDoubleCounter>
 						{
-							Id = 124,
-							Text = "Penalty for Barcelona"
+							new LiveDoubleCounter
+							{
+								Id = 1,
+								Name = "Double Counter 1",
+								Team1 = new Team
+								{
+									Counters = new List<Counter>
+									{
+										new Counter
+										{
+											Id = 1,
+											PeriodId = 254,
+											Value = 3
+										},
+										new Counter
+										{
+											Id = 2,
+											PeriodId = 255,
+											Value = 5
+										}
+									}
+								}
+							}
 						}
 					}
 				}
@@ -39,34 +64,24 @@ namespace Tests
 
 			var e2 = e1.DeepClone();
 
-			e2.OpenDate = DateTime.UtcNow.AddMinutes(10);
-			e2.Scoreboard = new Scoreboard
+			//e2.OpenDate = DateTime.UtcNow.AddMinutes(10);
+
+			//e2.Scoreboard.Messages[0].Text = "New update message";
+			e2.Scoreboard.Messages.Add(new Message
 			{
-				Messages = new[]
-				{
-					new Message
-					{
-						Id = 4324,
-						Text = "Red card for Real Madrid"
-					},
-					new Message
-					{
-						Id = 124,
-						Text = "Penalty for Barcelona"
-					},
-					new Message
-					{
-						Id = 645,
-						Text = "No clear indication"
-					},
-				}
-			};
+				Id = 124,
+				Text = "Penalty for Barcelona"
+			});
 
-			var diff = ObjectDiffPatch.GenerateDiff(e1, e2);
+			e2.Scoreboard.Stats.DoubleCounters[0].Team1.Counters[0].Value = 11;
+			e2.Scoreboard.Stats.DoubleCounters[0].Name = "Updated name";
 
-			var payload = diff.NewValues.ToString(Formatting.Indented);
+			var jo1 = JObject.FromObject(e1).Root;
+			var jo2 = JObject.FromObject(e2).Root;
 
-			Assert.IsNotNull(payload);
+			var patchDoc = new JsonDiffer().Diff(jo1, jo2, true);
+			System.Diagnostics.Trace.WriteLine(patchDoc);
+
 		}
 	}
 }

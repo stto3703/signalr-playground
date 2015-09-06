@@ -6,11 +6,8 @@ namespace Push.Common.Models
 	[Serializable]
 	public class Scoreboard
 	{
-		public Scoreboard()
-		{
-			Messages = new List<Message>();
-		}
+		public List<Message> Messages { get; set; }
 
-		public IList<Message> Messages { get; set; }
+		public GameStatistics Stats { get; set; }
 	}
 }

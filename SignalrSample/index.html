@@ -15,6 +15,7 @@
 		</div>
 		<script src="Scripts/jquery-2.1.4.js"></script>
 		<script src="Scripts/jquery.signalR-2.2.0.js"></script>
+		<script src="Scripts/json-patch.min.js"></script>
 		<script src="signalr/hubs"></script>
 		<!--Add script to update the page and send messages.-->
 		<script type="text/javascript">
@@ -25,6 +26,8 @@
 
 				var stats = $("#stats");
 				var seq = $('#seq');
+
+				window.eventCache = {};
 
 				window.connection = $.hubConnection("/signalr");
 
@@ -37,11 +40,23 @@
 
 				window.adminHub.on("updateEvent", function (packet) {
 
+					//console.debug("message received", packet);
+
 					if (lastSequence && lastSequence !== packet.Id - 1) {
 						console.error("Sequence out of sync");
 					}
+
 					lastSequence = packet.Id;
 					messageCounter++;
+
+					$.each(packet.Payload, function(idx, e) {
+
+						var patch = JSON.parse(e.Delta);
+						var eventToUpdate = window.eventCache[e.Id];
+						jsonpatch.apply(eventToUpdate, patch, true);
+
+					});
+
 					seq.text(packet.Id);
 				});
 
@@ -53,7 +68,12 @@
 					console.debug("Connection success. Waiting for messages.");
 
 					$('#start').click(function() {
-						window.adminHub.invoke("start").then(function () {
+						window.adminHub.invoke("start").then(function (events) {
+
+							$.each(events, function(idx, ev) {
+								window.eventCache[ev.Id] = ev;
+							});
+
 							$('#start').attr("disabled", "disabled");
 							$('#stop').removeAttr("disabled");
 						});
